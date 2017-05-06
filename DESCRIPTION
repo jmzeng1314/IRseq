@@ -7,7 +7,7 @@ Authors@R: c(person(given = "JianMing", family = "Zeng",
 		    role  = c("aut", "cre")),
 	     person(given = "Nobody", family = "No",
 	            email = "jmzeng1314@outlook.com",
-		    role  = "ctb"),
+		    role  = "ctb")
 		    )
 Maintainer: JianMing Zeng <jmzeng1314@163.com>
 Description: This package implements methods to analyze and visualize
@@ -15,8 +15,9 @@ Description: This package implements methods to analyze and visualize
 Depends:
     R (>= 3.3.1)
 Imports:
-    FField
-    MASS,
+    cowplot,
+    dplyr,
+    FField,
     RColorBrewer,
     VennDiagram,
     ape,
@@ -28,7 +29,7 @@ Imports:
     plotrix,
     reshape,
     reshape2,
-    scales,
+    scales
 Suggests:
     knitr,
     rmarkdown,

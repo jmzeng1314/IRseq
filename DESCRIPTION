@@ -40,4 +40,4 @@ License: Artistic-2.0
 URL: http://www.biotrainee.com/
 BugReports: https://github.com/jmzeng1314/IRseq/issues
 Packaged: NA
-RoxygenNote: 0.1.0
+RoxygenNote: 6.0.1

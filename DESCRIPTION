@@ -1,11 +1,42 @@
 Package: IRseq
 Type: Package
-Title: What the Package Does (Title Case)
+Title: statistics and visualization for immune repertoire sequencing data 
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
-Encoding: UTF-8
-LazyData: true
+Authors@R: c(person(given = "JianMing", family = "Zeng",
+	            email = "jmzeng1314@163.com",
+		    role  = c("aut", "cre")),
+	     person(given = "Nobody", family = "No",
+	            email = "jmzeng1314@outlook.com",
+		    role  = "ctb"),
+		    )
+Maintainer: JianMing Zeng <jmzeng1314@163.com>
+Description: This package implements methods to analyze and visualize
+    the immune repertoire sequencing data 
+Depends:
+    R (>= 3.3.1)
+Imports:
+    FField
+    MASS,
+    RColorBrewer,
+    VennDiagram,
+    ape,
+    circlize,
+    ggplot2,
+    gplots,
+    grid,
+    gridExtra,
+    plotrix,
+    reshape,
+    reshape2,
+    scales,
+Suggests:
+    knitr,
+    rmarkdown,
+    roxygen2
+VignetteBuilder: knitr
+ByteCompile: true
+License: Artistic-2.0
+URL: http://www.biotrainee.com/
+BugReports: https://github.com/jmzeng1314/IRseq/issues
+Packaged: NA
+RoxygenNote: 0.1.0

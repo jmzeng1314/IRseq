@@ -28,4 +28,15 @@ rownames(mat)=rn
 colnames(mat)=cn
 v_j_circle(mat,'test/input_files/v-j-circle.pdf')
 
+file_in='test/input_files/top10-CDR3-aa-length-distribution.txt'
+df <- read.table(file_in, sep ="\t", header = TRUE, comment="", quote="")
+df[, 1:ncol(df)] <- apply(df[, 1:ncol(df)], 2, as.numeric)
+barplot_cdr3aa(df,'test/input_files/cdr3aa-usage-cdr3aa-length.pdf','CDR3 amino acid','F')
+
+file_in='test/input_files/top10-v-usage-CDR3-aa-length-distribution.txt'
+df <- read.table(file_in, sep ="\t", header = TRUE, comment="", quote="")
+df[, 1:ncol(df)] <- apply(df[, 1:ncol(df)], 2, as.numeric)
+barplot_cdr3aa(df,'test/input_files/v-usage-cdr3aa-length.pdf','varibale segments','F')
+
+
 

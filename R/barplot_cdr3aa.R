@@ -18,8 +18,11 @@
 
 barplot_cdr3aa <- function(input_matrix,file_out,label,gradient){
   require(ggplot2); require(reshape); require(RColorBrewer)
-  colnames(input_matrix)[1]='Len'
-  df.m <- melt(input_matrix, id = "Len")
+  df=input_matrix
+
+  df[, 1:ncol(df)] <- apply(df[, 1:ncol(df)], 2, as.numeric)
+  colnames(df)[1]='Len'
+  df.m <- melt(df, id = "Len")
 
   # plotting function for simplicity
   my.plot <- function(...) {

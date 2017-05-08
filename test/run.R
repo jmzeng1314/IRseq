@@ -50,6 +50,15 @@ sample1_cdr3=df[,c(4,15)];
 sample2_cdr3=df[,c(4,16)];
 cdr3_paired_comparison(sample1_cdr3,sample2_cdr3,'case','control','test/input_files/cdr3_paired_comparison.pdf')
 
+load('test/input_files/keeP_IRdata.RData')
+lapply(keeP_IRdata,nrow)
 
+lapply(keeP_IRdata,function(x){
+  cdr3_diversity_stat(x[,4],'d50')
+
+})
+
+
+IgAN2=keeP_IRdata$IgAN2
 
 

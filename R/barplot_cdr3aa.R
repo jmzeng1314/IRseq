@@ -28,7 +28,7 @@ barplot_cdr3aa <- function(input_matrix,file_out,label,gradient){
   my.plot <- function(...) {
 
     # custom palette (color blind)
-
+    pal=''
     if (gradient) {
       pal <- colorRampPalette(c("#2b8cbe", "#e0f3db", "#fdbb84"))(ncol(df) - 2)
     } else {
@@ -39,11 +39,13 @@ barplot_cdr3aa <- function(input_matrix,file_out,label,gradient){
       geom_bar(width = 1, stat = "identity") +
       xlab("CDR3 length, bp") +
       labs(fill=label) +
-      scale_x_continuous(expand = c(0, 0)) +
+      scale_x_continuous(expand = c(0, 0),breaks = 1:35) +
       scale_y_continuous(expand = c(0, 0)) +
       scale_fill_manual(values=c("grey75", pal)) +
       theme_bw() +
-      theme(legend.text=element_text(size=8), axis.title.y=element_blank()) +
+      theme(legend.text=element_text(size=8), axis.title.y=element_blank(),
+      axis.text.x=element_text(angle=45,hjust=1,size=6),
+      panel.grid.major=element_blank()) +
       guides(fill = guide_legend(reverse = TRUE))
 
    print(p)

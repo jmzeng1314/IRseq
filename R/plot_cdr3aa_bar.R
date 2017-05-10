@@ -22,7 +22,7 @@ plot_cdr3aa_bar <- function(input_matrix,label,file_out){
   df=input_matrix
 
   df[, 1:ncol(df)] <- apply(df[, 1:ncol(df)], 2, as.numeric)
-  colnames(df)[1]='Len'
+  colnames(df)[1]='Len';df$Len
   df.m <- melt(df, id = "Len")
 
   # plotting function for simplicity

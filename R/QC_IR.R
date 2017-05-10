@@ -15,7 +15,7 @@
 #'
 QC_IR <- function(IR_basic_df){
   all_reads=nrow(IR_basic_df)
-  not_qualified_reads=nrow(subset(IR_basic_df,V=='N/A' & cdr3aa == 'N/A'))
-  not_cdr3aa = nrow(subset(IR_basic_df, cdr3aa == 'N/A'))
+  not_qualified_reads=nrow(subset(IR_basic_df,V=='N/A' & (cdr3aa == 'N/A' | cdr3aa == '')))
+  not_cdr3aa = nrow(subset(IR_basic_df, cdr3aa == 'N/A' | cdr3aa ==''))
   return(c(all_reads,100*not_qualified_reads/all_reads,100*not_cdr3aa/all_reads))
 }

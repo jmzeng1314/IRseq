@@ -1,10 +1,11 @@
 #load('test/input_files/keeP_IRdata.RData')
 #devtools::use_data( keeP_IRdata, overwrite =T)
-library(IRseq)
-data(keeP_IRdata)
-keeP_IRdata=keep_IRdata
 
-do.call(rbind,lapply(keeP_IRdata,QC_IR))
+library(IRseq)
+library(ggplot2)
+data(keeP_IRdata)
+
+qc=do.call(rbind,lapply(keeP_IRdata,QC_IR))
 
 tmp<-lapply(keeP_IRdata,function(x){
   tmp=x[,4]
@@ -16,7 +17,17 @@ tmp<-lapply(keeP_IRdata,function(x){
     stat_cdr3_diversity(tmp,'gini')
   ))
 })
-do.call(rbind,tmp)
+diversity=do.call(rbind,tmp)
+colnames(diversity)=c('d50','shannon','simpson','gini')
+
+
+
+plot_t_test(diversity[c(1:7,10),1],diversity[c(8:9,11:15),1] )
+plot_t_test(diversity[c(1:7,10),2],diversity[c(8:9,11:15),2] )
+plot_t_test(diversity[c(1:7,10),3],diversity[c(8:9,11:15),3] )
+plot_t_test(diversity[c(1:7,10),4],diversity[c(8:9,11:15),4] )
+
+## basic plot for each sample
 
 IR_basic_df=keeP_IRdata[[1]]
 IR_basic_stat_results <- stat_IR_basic(IR_basic_df)
@@ -30,20 +41,41 @@ plot_usage <- function(dat){
           axis.title.x=element_blank())+labs(title='Usage',y="percent")
   print(p)
 }
-plot_usage(IR_basic_stat_results$v_usage)
-plot_usage(IR_basic_stat_results$d_usage)
-plot_usage(IR_basic_stat_results$j_usage)
-plot_usage(IR_basic_stat_results$cdr3aa_length_usage)
-plot_cdr3aa_bar(IR_basic_stat_results$cdr3aa_length_v, 'V segment' )
-plot_cdr3aa_bar(IR_basic_stat_results$cdr3aa_length_cdr3aa, 'CDR aa' )
-plot_cdr3_stat(IR_basic_stat_results$cdr3aa_stat)
-plot_v_j_combination(IR_basic_stat_results$vj_usage_matrix,image_type = 'circle',file_out = 'test.v-j.circle.pdf')
-plot_v_j_combination(IR_basic_stat_results$vj_usage_matrix,image_type = 'bubble')
+
+
 
 all_results <- lapply(keeP_IRdata,stat_IR_basic)
-plot_cdr3_paired_comparison(all_results$case1$all_cdr3aa_usage , all_results$control1$all_cdr3aa_usage,
-                            'case','control')
+plot_cdr3_paired_comparison(all_results$IgAN10$all_cdr3aa_usage , all_results$IgAN12$all_cdr3aa_usage,
+                            'IgAN10','IgAN12')
+lapply(1:length(all_results), function(i){
+  this_result <- all_results[i]
+  this_sample <- names(all_results)[i]
 
+  pdf(paste0(this_sample,".v_usage.pdf"))
+  plot_usage(this_result$v_usage);dev.off()
+  pdf(paste0(this_sample,".d_usage.pdf"))
+  plot_usage(this_result$d_usage);dev.off()
+  pdf(paste0(this_sample,".j_usage.pdf"))
+  plot_usage(this_result$j_usage);dev.off()
+  pdf(paste0(this_sample,".cdr3aa_length_usage.pdf"))
+  plot_usage(this_result$cdr3aa_length_usage);dev.off()
 
+  plot_cdr3aa_bar(this_result$cdr3aa_length_v, 'V segment' ,
+                  file_out =  paste0(this_sample,".cdr3aa_length_v.pdf"))
+  plot_cdr3aa_bar(this_result$cdr3aa_length_cdr3aa, 'CDR aa',
+                  file_out =  paste0(this_sample,".cdr3aa_length_cdr3aa.pdf"))
+  plot_cdr3_stat(this_result$cdr3aa_stat,
+                 file_out = paste0(this_sample,".cdr3aa_stat.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'circle',
+                       file_out = paste0(this_sample,".v_j_circle.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'bubble',
+                       file_out = paste0(this_sample,".v_j_bubble.pdf"))
+})
+
+lapply(1:length(all_results), function(i){
+  this_result <- all_results[i]
+  this_sample <- names(all_results)[i]
+
+})
 
 

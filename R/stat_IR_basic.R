@@ -23,7 +23,7 @@ stat_IR_basic <- function(IR_basic_df){
   library(plyr)
   library(reshape)
   ## firtly for v/d/j segment usage:
-  IR_basic_df= subset(IR_basic_df,V !='N/A' & cdr3aa != 'N/A')
+  IR_basic_df= subset(IR_basic_df,V !='N/A' & V != '')
   v_usage=ddply(IR_basic_df,.(V),nrow)
   v_usage$V1=v_usage$V1/sum(v_usage$V1)
   d_usage=ddply(IR_basic_df,.(D),nrow)
@@ -45,7 +45,7 @@ stat_IR_basic <- function(IR_basic_df){
   #v_j_combination(vj_usage_matrix,'bubble','tmp.pdf')
 
   ## thirdly for cdr3 length
-  cdr3_IR <- subset(IR_basic_df,cdr3aa != 'N/A')
+  cdr3_IR <- subset(IR_basic_df,cdr3aa != 'N/A' & cdr3aa != '')
 
   tmp=sort(table(cdr3_IR$cdr3aa),decreasing = T)
   all_cdr3aa_usage=data.frame(cdr3aa=names(tmp),
@@ -61,10 +61,11 @@ stat_IR_basic <- function(IR_basic_df){
   Q3=sum(p[(2*five):(3*five)])
   Q4=sum(p[(3*five):(4*five)])
   Q5=sum(p[(4*five):length(p)])
-  top5_cdr3aa=head(all_cdr3aa_usage,5)
-  cdr3aa_stat<-data.frame(type=c(rep('set',3),rep('quantile',5),rep('top',5)),
-                          name=c('3+',2,1,'Q1','Q2','Q3','Q4','Q5',top5_cdr3aa$cdr3aa),
-                          value=c(set3,set2,set1,Q1,Q2,Q3,Q4,Q5,top5_cdr3aa$percent),
+  top_cdr3aa=subset(all_cdr3aa_usage,percent>0.01)
+
+  cdr3aa_stat<-data.frame(type=c(rep('set',3),rep('quantile',5),rep('top',nrow(top_cdr3aa))),
+                          name=c('3+',2,1,'Q1','Q2','Q3','Q4','Q5',top_cdr3aa$cdr3aa),
+                          value=c(set3,set2,set1,Q1,Q2,Q3,Q4,Q5,top_cdr3aa$percent),
                           stringsAsFactors = F
                           )
   #cdr3aa_stat

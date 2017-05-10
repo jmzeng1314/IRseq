@@ -1,0 +1,252 @@
+---
+title: "IRseq example"
+author: "jmzeng1314@163.com"
+date: "May 10, 2017"
+output: html_document
+---
+
+## load package and data
+
+
+```{r}
+library(IRseq) 
+library(ggplot2)
+load('../../keep_IRdata.RData')
+names(keep_IRdata)
+head(keep_IRdata[[1]])
+```
+
+## basic QC for all of the samples
+
+```{r}
+qc=do.call(rbind,lapply(keep_IRdata,QC_IR))
+colnames(qc)=c('all reads','not qualified','not cdr3 aa')
+qc
+```
+
+## basic statistic for cdr3 diveristy
+
+```{r}
+
+tmp<-lapply(keep_IRdata,function(x){
+  tmp=x[,4]
+  tmp=tmp[tmp!='N/A']
+  return(c(
+    stat_cdr3_diversity(tmp,'d50'),
+    stat_cdr3_diversity(tmp,'shannon'),
+    stat_cdr3_diversity(tmp,'simpson'),
+    stat_cdr3_diversity(tmp,'gini')
+  ))
+})
+diversity=do.call(rbind,tmp)
+colnames(diversity)=c('d50','shannon','simpson','gini')
+diversity
+```
+
+
+> we can do t.test for cdr3 diversity between case and control group
+
+```{r}
+## for d50 index:
+plot_t_test(diversity[c(1:7,10),1],diversity[c(8:9,11:15),1] )
+
+## for shanon entropy
+plot_t_test(diversity[c(1:7,10),2],diversity[c(8:9,11:15),2] )
+
+# for simpson index
+plot_t_test(diversity[c(1:7,10),3],diversity[c(8:9,11:15),3] )
+
+## for gini coefficient 
+plot_t_test(diversity[c(1:7,10),4],diversity[c(8:9,11:15),4] )
+
+```
+
+> also we can generate publication qualited figures
+
+```{r,eval=FALSE}
+plot_t_test(diversity[c(1:7,10),1],diversity[c(8:9,11:15),1] ,'d50.t.test.png')
+plot_t_test(diversity[c(1:7,10),2],diversity[c(8:9,11:15),2] ,'shannon.t.test.png')
+plot_t_test(diversity[c(1:7,10),3],diversity[c(8:9,11:15),3] ,'simpson.t.test.png')
+plot_t_test(diversity[c(1:7,10),4],diversity[c(8:9,11:15),4] ,'gini.t.test.png')
+
+```
+
+## basic statistcs for v/d/j/cdr3 usage for each sample
+
+> choose the first sample as a example 
+
+```{r}
+
+IR_basic_df=keep_IRdata[[1]]
+IR_basic_stat_results <- stat_IR_basic(IR_basic_df)
+str(IR_basic_stat_results)
+names(IR_basic_stat_results)
+
+plot_usage <- function(dat){
+  colnames(dat)=c('x','y')
+  p=ggplot(dat,aes(x,y))+geom_bar(stat='identity')+ theme_classic() + scale_y_continuous(expand=c(0,0))+
+    theme(text=element_text(face='bold'),axis.text.x=element_text(angle=45,hjust=1,size=10),
+          axis.title.x=element_blank())+labs(title='Usage',y="percent")
+  print(p)
+}
+plot_usage(IR_basic_stat_results$v_usage)
+plot_usage(IR_basic_stat_results$d_usage)
+plot_usage(IR_basic_stat_results$j_usage)
+plot_usage(IR_basic_stat_results$cdr3aa_length_usage)
+plot_cdr3aa_bar(IR_basic_stat_results$cdr3aa_length_v, 'V segment' )
+plot_cdr3aa_bar(IR_basic_stat_results$cdr3aa_length_cdr3aa, 'CDR aa' )
+plot_cdr3_stat(IR_basic_stat_results$cdr3aa_stat)
+plot_v_j_combination(IR_basic_stat_results$vj_usage_matrix,image_type = 'circle',file_out = 'test.v-j.circle.pdf')
+plot_v_j_combination(IR_basic_stat_results$vj_usage_matrix,image_type = 'bubble')
+
+```
+
+## stat for all of the samples:
+```{r}
+all_results <- lapply(keep_IRdata,stat_IR_basic)
+```
+> then you can choose two of them to campare their shared CDR3
+```{r}
+plot_cdr3_paired_comparison(all_results$IgAN10$all_cdr3aa_usage , all_results$IgAN12$all_cdr3aa_usage,
+                            'IgAN10','IgAN12')
+```
+
+> but It's a little complicated, just for a example.
+
+## generate all of the figures for all of the samples
+ 
+```{r ,eval=FALSE}
+lapply(1:length(all_results), function(i){
+  this_result <- all_results[[i]]
+  this_sample <- names(all_results)[i]
+
+  pdf(paste0(this_sample,".v_usage.pdf"))
+  plot_usage(this_result$v_usage);dev.off()
+  pdf(paste0(this_sample,".d_usage.pdf"))
+  plot_usage(this_result$d_usage);dev.off()
+  pdf(paste0(this_sample,".j_usage.pdf"))
+  plot_usage(this_result$j_usage);dev.off()
+  pdf(paste0(this_sample,".cdr3aa_length_usage.pdf"))
+  plot_usage(this_result$cdr3aa_length_usage);dev.off()
+
+  plot_cdr3aa_bar(this_result$cdr3aa_length_v, 'V segment' ,
+                  file_out =  paste0(this_sample,".cdr3aa_length_v.pdf"))
+  plot_cdr3aa_bar(this_result$cdr3aa_length_cdr3aa, 'CDR aa',
+                  file_out =  paste0(this_sample,".cdr3aa_length_cdr3aa.pdf"))
+  plot_cdr3_stat(this_result$cdr3aa_stat,
+                 file_out = paste0(this_sample,".cdr3aa_stat.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'circle',
+                       file_out = paste0(this_sample,".v_j_circle.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'bubble',
+                       file_out = paste0(this_sample,".v_j_bubble.pdf"))
+})
+
+```
+
+
+## subset the IR data by IG subtype: IgG,IgA,IgM
+
+> The do the same process as the whole IR data :
+
+```{r,eval=FALSE}
+all_results_IgA <- lapply(keep_IRdata,function(x){
+  x=subset(x,type='IgA')
+  stat_IR_basic(x)
+})
+
+lapply(1:length(all_results_IgA), function(i){
+  this_result <- all_results_IgA[[i]]
+  this_sample <- names(all_results_IgA)[i]
+  this_sample <- paste0(this_sample,".IgA")
+  pdf(paste0(this_sample,".v_usage.pdf"))
+  plot_usage(this_result$v_usage);
+  dev.off()
+  pdf(paste0(this_sample,".d_usage.pdf"))
+  plot_usage(this_result$d_usage);dev.off()
+  pdf(paste0(this_sample,".j_usage.pdf"))
+  plot_usage(this_result$j_usage);dev.off()
+  pdf(paste0(this_sample,".cdr3aa_length_usage.pdf"))
+  plot_usage(this_result$cdr3aa_length_usage);dev.off()
+
+  plot_cdr3aa_bar(this_result$cdr3aa_length_v, 'V segment' ,
+                  file_out =  paste0(this_sample,".cdr3aa_length_v.pdf"))
+  plot_cdr3aa_bar(this_result$cdr3aa_length_cdr3aa, 'CDR aa',
+                  file_out =  paste0(this_sample,".cdr3aa_length_cdr3aa.pdf"))
+  plot_cdr3_stat(this_result$cdr3aa_stat,
+                 file_out = paste0(this_sample,".cdr3aa_stat.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'circle',
+                       file_out = paste0(this_sample,".v_j_circle.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'bubble',
+                       file_out = paste0(this_sample,".v_j_bubble.pdf"))
+})
+
+
+all_results_IgM <- lapply(keep_IRdata,function(x){
+  x=subset(x,type='IgM')
+  stat_IR_basic(x)
+})
+lapply(1:length(all_results_IgM), function(i){
+  this_result <- all_results_IgM[[i]]
+  this_sample <- names(all_results_IgM)[i]
+  this_sample <- paste0(this_sample,".IgM")
+  pdf(paste0(this_sample,".v_usage.pdf"))
+  plot_usage(this_result$v_usage);dev.off()
+  pdf(paste0(this_sample,".d_usage.pdf"))
+  plot_usage(this_result$d_usage);dev.off()
+  pdf(paste0(this_sample,".j_usage.pdf"))
+  plot_usage(this_result$j_usage);dev.off()
+  pdf(paste0(this_sample,".cdr3aa_length_usage.pdf"))
+  plot_usage(this_result$cdr3aa_length_usage);dev.off()
+
+  plot_cdr3aa_bar(this_result$cdr3aa_length_v, 'V segment' ,
+                  file_out =  paste0(this_sample,".cdr3aa_length_v.pdf"))
+  plot_cdr3aa_bar(this_result$cdr3aa_length_cdr3aa, 'CDR aa',
+                  file_out =  paste0(this_sample,".cdr3aa_length_cdr3aa.pdf"))
+  plot_cdr3_stat(this_result$cdr3aa_stat,
+                 file_out = paste0(this_sample,".cdr3aa_stat.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'circle',
+                       file_out = paste0(this_sample,".v_j_circle.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'bubble',
+                       file_out = paste0(this_sample,".v_j_bubble.pdf"))
+})
+
+
+all_results_IgG <- lapply(keep_IRdata,function(x){
+  x=subset(x,type='IgG')
+  stat_IR_basic(x)
+})
+lapply(1:length(all_results_IgG), function(i){
+  this_result <- all_results_IgG[[i]]
+  this_sample <- names(all_results_IgG)[i]
+  this_sample <- paste0(this_sample,".IgG")
+  pdf(paste0(this_sample,".v_usage.pdf"))
+  plot_usage(this_result$v_usage);dev.off()
+  pdf(paste0(this_sample,".d_usage.pdf"))
+  plot_usage(this_result$d_usage);dev.off()
+  pdf(paste0(this_sample,".j_usage.pdf"))
+  plot_usage(this_result$j_usage);dev.off()
+  pdf(paste0(this_sample,".cdr3aa_length_usage.pdf"))
+  plot_usage(this_result$cdr3aa_length_usage);dev.off()
+
+  plot_cdr3aa_bar(this_result$cdr3aa_length_v, 'V segment' ,
+                  file_out =  paste0(this_sample,".cdr3aa_length_v.pdf"))
+  plot_cdr3aa_bar(this_result$cdr3aa_length_cdr3aa, 'CDR aa',
+                  file_out =  paste0(this_sample,".cdr3aa_length_cdr3aa.pdf"))
+  plot_cdr3_stat(this_result$cdr3aa_stat,
+                 file_out = paste0(this_sample,".cdr3aa_stat.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'circle',
+                       file_out = paste0(this_sample,".v_j_circle.pdf"))
+  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'bubble',
+                       file_out = paste0(this_sample,".v_j_bubble.pdf"))
+})
+
+save(all_results,all_results_IgA,all_results_IgG,all_results_IgM,file='analysis_result.Rdata')
+```
+
+
+## compare the v/j/usage and between case and control group 
+
+
+
+
+

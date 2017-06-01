@@ -4,16 +4,21 @@
 \alias{stat_cdr3aa_saturation}
 \title{saturation analyses for CDR3 sequences}
 \usage{
-stat_cdr3aa_saturation(IRsample)
+stat_cdr3aa_saturation(IRsample, by, times)
 }
 \arguments{
 \item{IRsample}{cdr3aa column is needed, other(V,D,J,cdr3nt,type) are optional.}
+
+\item{times}{how many times should be sampled.}
+
+\item{number}{range from 1~99}
 }
 \value{
 saturation_matrix  18 rows and 8 columns
 }
 \description{
 By 1  2  3  4  5  6  7  8  9 10 20 30 40 50 60 70 80 90 percent
+Or user defined the percent and times, eg: 10% for 10 times.
 To counts the reads/distinct cdr3aa number/QC/diversity
 }
 \examples{

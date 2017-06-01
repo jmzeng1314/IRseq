@@ -3,11 +3,23 @@
 
 library(IRseq)
 library(ggplot2)
-data(keeP_IRdata)
+#data(keeP_IRdata)
+load('../IRdata.RData')
+names(IRdata)
+keep_IRdata=IRdata[c(1:5,9,12:20)]
+##################################################################
+########### basic QC for all of the samples ###################
+##################################################################
+qc=do.call(rbind,lapply(keep_IRdata,QC_IR))
+colnames(qc)=c('all reads','not qualified','not cdr3 aa')
+qc=as.data.frame(qc)
+qc$sampleID=rownames(qc)
+write.csv(merge(qc,config,by='sampleID'),'qc.csv')
 
-qc=do.call(rbind,lapply(keeP_IRdata,QC_IR))
-
-tmp<-lapply(keeP_IRdata,function(x){
+##################################################################
+########### basic statistic for cdr3 diveristy ###################
+##################################################################
+tmp<-lapply(keep_IRdata,function(x){
   tmp=x[,4]
   tmp=tmp[tmp!='N/A']
   return(c(
@@ -19,63 +31,143 @@ tmp<-lapply(keeP_IRdata,function(x){
 })
 diversity=do.call(rbind,tmp)
 colnames(diversity)=c('d50','shannon','simpson','gini')
+diversity=as.data.frame(diversity)
+diversity$sampleID=rownames(diversity)
+write.csv(merge(diversity,config,by='sampleID'),'diversity.csv')
 
+names(keep_IRdata)
+a=diversity[grepl('Ig',names(keep_IRdata)),]
+b=diversity[grepl('NC',names(keep_IRdata)),]
+plot_t_test(a[,1],b[,1],'d50.t.test.png')
+plot_t_test(a[,2],b[,2],'shannon.t.test.png')
+plot_t_test(a[,3],b[,3],'simpson.t.test.png')
+plot_t_test(a[,4],b[,4],'gini.t.test.png')
 
+## then for cdr3 diveristy of different Ig subtype
+lapply(c('IgA','IgM','IgG'),function(this_type){
+  old_dir=getwd()
+  new_dir=paste0('CDR3_diversity_',this_type)
+  dir.create(new_dir)
+  setwd(new_dir)
 
-plot_t_test(diversity[c(1:7,10),1],diversity[c(8:9,11:15),1] )
-plot_t_test(diversity[c(1:7,10),2],diversity[c(8:9,11:15),2] )
-plot_t_test(diversity[c(1:7,10),3],diversity[c(8:9,11:15),3] )
-plot_t_test(diversity[c(1:7,10),4],diversity[c(8:9,11:15),4] )
+  tmp<-lapply(keep_IRdata,function(x){
 
-## basic plot for each sample
+    x=subset(x,type=this_type)
+    tmp=x[,4]
+    tmp=tmp[tmp!='N/A']
+    return(c(
+      stat_cdr3_diversity(tmp,'d50'),
+      stat_cdr3_diversity(tmp,'shannon'),
+      stat_cdr3_diversity(tmp,'simpson'),
+      stat_cdr3_diversity(tmp,'gini')
+    ))
+  })
+  diversity=do.call(rbind,tmp)
+  colnames(diversity)=c('d50','shannon','simpson','gini')
+  diversity=as.data.frame(diversity)
+  diversity$sampleID=rownames(diversity)
+  write.csv(merge(diversity,config,by='sampleID'),'diversity.csv')
 
-IR_basic_df=keeP_IRdata[[1]]
-IR_basic_stat_results <- stat_IR_basic(IR_basic_df)
-str(IR_basic_stat_results)
-names(IR_basic_stat_results)
-
-plot_usage <- function(dat){
-  colnames(dat)=c('x','y')
-  p=ggplot(dat,aes(x,y))+geom_bar(stat='identity')+ theme_classic() + scale_y_continuous(expand=c(0,0))+
-    theme(text=element_text(face='bold'),axis.text.x=element_text(angle=45,hjust=1,size=10),
-          axis.title.x=element_blank())+labs(title='Usage',y="percent")
-  print(p)
-}
-
-
-
-all_results <- lapply(keeP_IRdata,stat_IR_basic)
-plot_cdr3_paired_comparison(all_results$IgAN10$all_cdr3aa_usage , all_results$IgAN12$all_cdr3aa_usage,
-                            'IgAN10','IgAN12')
-lapply(1:length(all_results), function(i){
-  this_result <- all_results[i]
-  this_sample <- names(all_results)[i]
-
-  pdf(paste0(this_sample,".v_usage.pdf"))
-  plot_usage(this_result$v_usage);dev.off()
-  pdf(paste0(this_sample,".d_usage.pdf"))
-  plot_usage(this_result$d_usage);dev.off()
-  pdf(paste0(this_sample,".j_usage.pdf"))
-  plot_usage(this_result$j_usage);dev.off()
-  pdf(paste0(this_sample,".cdr3aa_length_usage.pdf"))
-  plot_usage(this_result$cdr3aa_length_usage);dev.off()
-
-  plot_cdr3aa_bar(this_result$cdr3aa_length_v, 'V segment' ,
-                  file_out =  paste0(this_sample,".cdr3aa_length_v.pdf"))
-  plot_cdr3aa_bar(this_result$cdr3aa_length_cdr3aa, 'CDR aa',
-                  file_out =  paste0(this_sample,".cdr3aa_length_cdr3aa.pdf"))
-  plot_cdr3_stat(this_result$cdr3aa_stat,
-                 file_out = paste0(this_sample,".cdr3aa_stat.pdf"))
-  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'circle',
-                       file_out = paste0(this_sample,".v_j_circle.pdf"))
-  plot_v_j_combination(this_result$vj_usage_matrix,image_type = 'bubble',
-                       file_out = paste0(this_sample,".v_j_bubble.pdf"))
+  names(keep_IRdata)
+  a=diversity[grepl('Ig',names(keep_IRdata)),]
+  b=diversity[grepl('NC',names(keep_IRdata)),]
+  plot_t_test(a[,1],b[,1],'d50.t.test.png')
+  plot_t_test(a[,2],b[,2],'shannon.t.test.png')
+  plot_t_test(a[,3],b[,3],'simpson.t.test.png')
+  plot_t_test(a[,4],b[,4],'gini.t.test.png')
+  setwd(old_dir)
 })
 
-lapply(1:length(all_results), function(i){
-  this_result <- all_results[i]
-  this_sample <- names(all_results)[i]
+##################################################################
+############### analysis based on IgA/G/M subtype ################
+##################################################################
+type_results <- lapply(keep_IRdata,function(x) table(x$type))
+type_counts <- do.call(rbind,type_results)
+write.csv(type_counts,'IG_subtype_counts.csv')
+tmp=type_counts[,-6]
+type_freq <- t(apply(tmp,1,function(x) x/sum(x)))
+write.csv(type_freq,'IG_subtype_freq.csv')
 
+a=type_freq[grepl('Ig',rownames(type_freq)),]
+b=type_freq[grepl('NC',rownames(type_freq)),]
+laply(colnames(type_freq),function(x){
+  plot_t_test(a[,x],b[,x],paste0(x,'.t.test.png'))
 })
+
+library(reshape)
+df=melt(type_freq)
+colnames(df)=c('sample','subtype','freq')
+df$group=ifelse(grepl('Ig',df$sample),'IgAN','NC')
+pie <- ggplot(df, aes(x = "", y=freq, fill = factor(subtype))) +
+  geom_bar(width = 1, stat = "identity") +
+  theme(axis.line = element_blank(),
+        plot.title = element_text(hjust=0.5)) +
+  facet_grid(group~.)+
+  labs(fill="subtype",
+       x=NULL,
+       y=NULL,
+       title="Pie Chart of sample",
+       caption="Source: mpg")
+
+pie + coord_polar(theta = "y", start=0)
+
+
+##################################################################
+########### saturation analyses for CDR3 sequences    ############
+##################################################################
+# By rarefaction analysis (random resampling of increasingly larger subsets of the data)
+# in addition to rarefaction, we used accumulation analysis
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3083096/
+IRsample=keep_IRdata$IgAN13
+str(IRsample)
+saturation_1=stat_cdr3aa_saturation(IRsample)
+saturation_2=stat_cdr3aa_saturation(IRsample,10,50)
+write.csv(saturation_1,"IgAN13_saturation_1.csv")
+write.csv(saturation_2,"IgAN13_saturation_2.csv")
+
+##################################################################
+#####  All of the basic stat for V/D/j/CDR3 usage and length######
+##################################################################
+all_results <- lapply(keep_IRdata,stat_IR_basic)
+group_list <- config$group[c(1:5,9,12:20)]
+v_comp_results<-compare_usage(all_results,'v_usage',group_list)
+j_comp_results<-compare_usage(all_results,'j_usage',group_list)
+d_comp_results<-compare_usage(all_results,'d_usage',group_list)
+cdr3aa_comp_results<-compare_usage(all_results,'cdr3aa_length_usage',group_list)
+
+
+plot(cdr3aa_comp_results$p2+xlim(0,30))+scale_x_continuous(breaks = 1:30)
+plot(v_comp_results$p2)
+plot(j_comp_results$p2)
+
+
+
+##################################################################
+############  All of the basic stat for IgA subtype ##############
+##################################################################
+all_results_IgA <- lapply(keep_IRdata,function(x){
+  x=subset(x,type='IgA')
+  stat_IR_basic(x)
+})
+
+##################################################################
+############  All of the basic stat for IgG subtype ##############
+##################################################################
+all_results_IgG <- lapply(keep_IRdata,function(x){
+  x=subset(x,type='IgG')
+  stat_IR_basic(x)
+})
+
+##################################################################
+############  All of the basic stat for IgM subtype ##############
+##################################################################
+all_results_IgM <- lapply(keep_IRdata,function(x){
+  x=subset(x,type='IgM')
+  stat_IR_basic(x)
+})
+
+save.image('tmp.Rdata')
+
+
 
 

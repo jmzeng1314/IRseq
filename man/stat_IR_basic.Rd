@@ -10,13 +10,19 @@ stat_IR_basic(IR_basic_df)
 A list contain:v/d/j usage, top 10 cdr3,
 }
 \description{
-analysis the summary table from igblastn result, which must  includes the following fields:
-Variable (V) segment name.
-Diversity (D) segment name for some of the receptor chains (TRB, TRD and IGH). Set to . if not aplicable or D segment was not identified.
-Joining (J) segment name.
-Complementarity determining region 3 nucleotide sequence (CDR3nt). CDR3 starts with Variable region reference point (conserved Cys residue) and ends with Joining segment reference point (conserved PheTry).
-Translated CDR3 sequence (CDR3aa).
+analysis the summary table from igblastn result, v/d/j/cdr3aa/
 THe other columns are optional: type,~~~
+cdr3aa_diversity=cdr3aa_diversity,
+v_usage=v_usage,
+d_usage=d_usage,
+j_usage=j_usage,
+all_cdr3aa_usage=all_cdr3aa_usage,
+cdr3aa_length_usage=cdr3aa_length_usage,
+top10_cdr3aa=top10_cdr3aa,
+cdr3aa_length_v=cdr3aa_length_v,
+cdr3aa_stat=cdr3aa_stat,
+vj_usage_matrix=vj_usage_matrix,
+cdr3aa_length_cdr3aa=cdr3aa_length_cdr3aa
 }
 \examples{
 #' stat_IR_basic(IR_basic_df)

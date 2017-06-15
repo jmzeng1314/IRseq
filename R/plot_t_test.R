@@ -22,7 +22,8 @@ plot_t_test <- function(a,b,file_out){
     dat2 <- data.frame(values = c(a,b),
                        type = c(rep('case',length(a)),rep('control',length(b)))
     )
-    mainText=paste0("T test","\n","P.value=", sprintf("%04f",Ttest$p.value),sep='')
+    #  sprintf("%04f",,Ttest$p.value) "T test","\n",
+    mainText=paste0("P.value=",format(Ttest$p.value,digits=2),sep='')
     boxplot( values ~  type, data = dat2, lwd = 2, ylab = 'value',las=1,main=mainText)
     stripchart(values ~ type, vertical = TRUE, data = dat2,
                method = "jitter", add = TRUE, pch = 20, col = 'blue')

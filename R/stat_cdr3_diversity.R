@@ -19,6 +19,12 @@ stat_cdr3_diversity <- function(cdr3aa,method=c('shannon','simpson','gini','d50'
     myvec <- as.data.frame(myfreqs)[,2]
     -sum(myvec * log2(myvec))
   }
+  metric.entropy <-function(y){
+    myfreqs <- table(y)/length(y)
+    myvec <- as.data.frame(myfreqs)[,2]
+    -sum(myvec * log(myvec,length(y)))
+  }
+  ## modify shannon.entropy to metric entropy
   Simpson.index <-function(y){
     myfreqs <- table(y)/length(y)
     myvec <- as.data.frame(myfreqs)[,2]
@@ -40,7 +46,7 @@ stat_cdr3_diversity <- function(cdr3aa,method=c('shannon','simpson','gini','d50'
   }
   switch(match.arg(method),
          #'shannon','simpson','gini','d50'
-         shannon = shannon.entropy(cdr3aa),
+         shannon = metric.entropy(cdr3aa),
          gini = gini.index(cdr3aa),
          simpson = Simpson.index(cdr3aa),
          d50 = d50.index(cdr3aa)
